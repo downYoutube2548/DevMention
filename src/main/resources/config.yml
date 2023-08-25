@@ -1,0 +1,19 @@
+servers:
+  - test_1_19_4
+  - test_1_20_1
+
+# hex: #ff0000, ...
+# default color: &b, &a, &f, ...
+mention-color: '#ff0000'
+mention-message: "&b%player% &fได้เรียกคุณ!"
+mention-title:
+  title: "&b%player%"
+  subtitle: "&fได้เรียกคุณ!"
+  in: 5
+  stay: 50
+  out: 10
+mention-sound:
+  - BLOCK_NOTE_BLOCK_BELL:100:1
+  - BLOCK_NOTE_BLOCK_BELL:100:1
+  - BLOCK_NOTE_BLOCK_FLUTE:100:1
+  - BLOCK_NOTE_BLOCK_FLUTE:100:1
