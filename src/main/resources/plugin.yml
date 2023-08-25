@@ -1,0 +1,7 @@
+name: DevMention
+version: '${project.version}'
+main: com.downyoutube.devmention.devmention.DevMention
+api-version: 1.20
+commands:
+  mention:
+    permission: devmention.admin
