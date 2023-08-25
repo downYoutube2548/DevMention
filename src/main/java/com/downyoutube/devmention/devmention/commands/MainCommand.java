@@ -1,21 +1,18 @@
 package com.downyoutube.devmention.devmention.commands;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.*;
 import com.downyoutube.devmention.devmention.DevMention;
+import com.mojang.authlib.GameProfile;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.*;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
 import java.util.UUID;
 
 public class MainCommand implements CommandExecutor {
@@ -118,21 +115,18 @@ public class MainCommand implements CommandExecutor {
                 );
             }
         } else if (args[0].equals("test")) {
-            PacketContainer packet = DevMention.protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
-            //Bukkit.broadcastMessage(packet.getModifier().write(100, null).toString());
 
-            List<PlayerInfoData> playerInfoDataList = new ArrayList<>();
+            Player player = (Player) sender;
+            CraftPlayer craftPlayer = (CraftPlayer) player;
+            ServerPlayer serverPlayer = craftPlayer.getHandle();
 
-            WrappedGameProfile profile = new WrappedGameProfile(UUID.randomUUID(), "some_thing");
-            WrappedChatComponent display_name = WrappedChatComponent.fromLegacyText(profile.getName());
-            PlayerInfoData player_info = new PlayerInfoData(profile, 0, EnumWrappers.NativeGameMode.ADVENTURE, display_name, null);
+            GameProfile profile = new GameProfile(UUID.randomUUID(), "some_thing");
 
-            playerInfoDataList.add(player_info);
+            ServerPlayer npc = new ServerPlayer(serverPlayer.getServer(), serverPlayer.serverLevel(), profile);
 
-            packet.getModifier().write(0, EnumSet.of(EnumWrappers.PlayerInfoAction.ADD_PLAYER));
-            packet.getPlayerInfoDataLists().write(1, playerInfoDataList);
+            ServerGamePacketListenerImpl connection = serverPlayer.connection;
+            connection.send(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, npc));
 
-            DevMention.protocolManager.sendServerPacket((Player)sender, packet);
         }
         return true;
     }

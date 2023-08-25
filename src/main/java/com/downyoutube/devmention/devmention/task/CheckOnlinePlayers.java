@@ -6,14 +6,17 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import com.mojang.authlib.GameProfile;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class CheckOnlinePlayers implements PluginMessageListener {
 
@@ -21,9 +24,21 @@ public class CheckOnlinePlayers implements PluginMessageListener {
 
     public static Set<String> getAllOnlinePlayers() {
         Set<String> onlinePlayer = new HashSet<>();
-        for (Set<String> online : onlinePlayers.values()) {
-            onlinePlayer.addAll(online);
+        for (Set<String> onlines : onlinePlayers.values()) {
+            for (String online : onlines) {
+                onlinePlayer.add(online.split(";")[0]);
+            }
         }
+        return onlinePlayer;
+    }
+
+    public static Set<String> getAllOnlinePlayersWithUUID() {
+        Set<String> onlinePlayer = new HashSet<>();
+        try {
+            for (Set<String> online : onlinePlayers.values()) {
+                onlinePlayer.addAll(online);
+            }
+        } catch (ConcurrentModificationException ignored) {}
         return onlinePlayer;
     }
 
@@ -42,12 +57,6 @@ public class CheckOnlinePlayers implements PluginMessageListener {
                     player.sendPluginMessage(DevMention.main, "BungeeCord", out.toByteArray());
                 }
             }
-
-            Set<String> onlinePlayer = new HashSet<>();
-            for (Set<String> online : onlinePlayers.values()) {
-                onlinePlayer.addAll(online);
-            }
-            //Bukkit.broadcastMessage(onlinePlayer.toString());
         }, 1, 20);
     }
 
@@ -63,10 +72,62 @@ public class CheckOnlinePlayers implements PluginMessageListener {
 
             if (in.readUTF().equals("PlayerList")) {
                 String server = in.readUTF();
-                String[] playerList = in.readUTF().split(", ");
+                Set<String> players = new HashSet<>();
+                for (String player_name : in.readUTF().split(", ")) {
+                    if (player_name.equals("") || player_name.equals(" ")) continue;
+                    Player bukkitPlayer = Bukkit.getPlayer(player_name);
+                    players.add(bukkitPlayer == null ? player_name+";"+UUID.randomUUID() : player_name+";"+bukkitPlayer.getUniqueId() );
+                }
 
-                if (List.of(playerList).isEmpty()) return;
-                onlinePlayers.put(server, new HashSet<>(List.of(playerList)));
+                Set<String> before = new HashSet<>(getAllOnlinePlayersWithUUID());
+                //System.out.println(server+": "+players);
+
+                if (!ConfigManager.getServers().contains(server)) return;
+                onlinePlayers.put(server, players);
+                Set<String> after = new HashSet<>(getAllOnlinePlayersWithUUID());
+
+                if (!before.equals(after)) {
+
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+
+                        Set<String> logged_in_after = new HashSet<>(after);
+                        Set<String> logged_out_before = new HashSet<>(before);
+                        logged_in_after.removeAll(before);
+                        logged_out_before.removeAll(after);
+                        List<ClientboundPlayerInfoUpdatePacket.Action> actions = new ArrayList<>();
+
+                        CraftPlayer craftPlayer = (CraftPlayer) p;
+                        ServerPlayer serverPlayer = craftPlayer.getHandle();
+
+                        List<ServerPlayer> npcs = new ArrayList<>();
+                        for (String logged_in : logged_in_after) {
+                            String logged_in_name = logged_in.split(";")[0];
+                            UUID logged_in_uuid = UUID.fromString(logged_in.split(";")[1]);
+
+                            GameProfile profile = new GameProfile(logged_in_uuid, logged_in_name);
+
+                            if (serverPlayer.getServer() == null) continue;
+                            try {
+                                ServerPlayer npc = new ServerPlayer(serverPlayer.getServer(), serverPlayer.serverLevel(), profile);
+                                actions.add(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER);
+                                npcs.add(npc);
+                            } catch (Exception ignored) {}
+                        }
+
+                        ServerGamePacketListenerImpl connection = serverPlayer.connection;
+
+                        if (!actions.isEmpty() && !npcs.isEmpty()) {
+                            connection.send(new ClientboundPlayerInfoUpdatePacket(EnumSet.copyOf(actions), npcs));
+                        }
+
+                        List<UUID> logged_out_uuid = new ArrayList<>();
+                        for (String logout : logged_out_before) {
+                            logged_out_uuid.add(UUID.fromString(logout.split(";")[1]));
+                        }
+
+                        connection.send(new ClientboundPlayerInfoRemovePacket(logged_out_uuid));
+                    }
+                }
             }
         });
     }
