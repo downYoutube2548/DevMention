@@ -5,3 +5,15 @@ api-version: 1.20
 commands:
   mention:
     permission: devmention.admin
+  msg:
+    permission: devmention.msg
+    aliases:
+      - tell
+      - w
+      - m
+      - whisper
+      - message
+  reply:
+    permission: devmention.msg
+    aliases:
+      - r

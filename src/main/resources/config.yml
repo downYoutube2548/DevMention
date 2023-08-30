@@ -17,3 +17,8 @@ mention-sound:
   - BLOCK_NOTE_BLOCK_BELL:100:1
   - BLOCK_NOTE_BLOCK_FLUTE:100:1
   - BLOCK_NOTE_BLOCK_FLUTE:100:1
+
+private-message-from: "&6[&cme &6-> &e%player%&6]&f %message%"
+private-message-to: "&6[&e%player% &6-> &cme&6]&f %message%"
+private-message-sound:
+  - ENTITY_ITEM_PICKUP:100:1

@@ -20,19 +20,24 @@ public class ConfigManager {
         return Utils.colorize(DevMention.main.getConfig().getString("mention-message"));
     }
 
-    public static String getTitle() {
+    public static String getMentionTitle() {
         return Utils.colorize(DevMention.main.getConfig().getString("mention-title.title"));
     }
-    public static String getSubTitle() {
+    public static String getMentionSubTitle() {
         return Utils.colorize(DevMention.main.getConfig().getString("mention-title.subtitle"));
     }
-    public static int getTitleIn() {
+    public static int getMentionTitleIn() {
         return DevMention.main.getConfig().getInt("mention-title.in");
     }
-    public static int getTitleStay() {
+    public static int getMentionTitleStay() {
         return DevMention.main.getConfig().getInt("mention-title.stay");
     }
-    public static int getTitleOut() {
+    public static int getMentionTitleOut() {
         return DevMention.main.getConfig().getInt("mention-title.out");
+    }
+    public static String getPrivateMessageFrom() { return Utils.colorize(DevMention.main.getConfig().getString("private-message-from")); }
+    public static String getPrivateMessageTo() { return Utils.colorize(DevMention.main.getConfig().getString("private-message-to")); }
+    public static List<String> getPrivateMessageSound() {
+        return DevMention.main.getConfig().getStringList("private-message-sound");
     }
 }

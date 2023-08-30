@@ -1,5 +1,7 @@
 package com.downyoutube.devmention.devmention.task;
 
+import com.Zrips.CMI.CMI;
+import com.Zrips.CMI.Containers.CMIUser;
 import com.downyoutube.devmention.devmention.DevMention;
 import com.downyoutube.devmention.devmention.utils.ConfigManager;
 import com.google.common.collect.Iterables;
@@ -12,6 +14,7 @@ import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -103,6 +106,13 @@ public class CheckOnlinePlayers implements PluginMessageListener {
                         for (String logged_in : logged_in_after) {
                             String logged_in_name = logged_in.split(";")[0];
                             UUID logged_in_uuid = UUID.fromString(logged_in.split(";")[1]);
+
+                            if (Bukkit.getServer().getPluginManager().isPluginEnabled("CMI")) {
+                                CMIUser user = CMI.getInstance().getPlayerManager().getUser(logged_in_name);
+                                if (user != null && user.isVanished() && !p.hasPermission("cmi.seevanished")) {
+                                    continue;
+                                }
+                            }
 
                             GameProfile profile = new GameProfile(logged_in_uuid, logged_in_name);
 

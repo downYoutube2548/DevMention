@@ -1,6 +1,8 @@
 package com.downyoutube.devmention.devmention;
 
 import com.downyoutube.devmention.devmention.commands.MainCommand;
+import com.downyoutube.devmention.devmention.commands.MsgCommand;
+import com.downyoutube.devmention.devmention.commands.ReplyCommand;
 import com.downyoutube.devmention.devmention.events.Chat;
 import com.downyoutube.devmention.devmention.task.CheckOnlinePlayers;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,12 +22,15 @@ public final class DevMention extends JavaPlugin {
         getConfig().options().copyDefaults();
         saveDefaultConfig();
 
+        Objects.requireNonNull(getCommand("msg")).setExecutor(new MsgCommand());
         Objects.requireNonNull(getCommand("mention")).setExecutor(new MainCommand());
+        Objects.requireNonNull(getCommand("reply")).setExecutor(new ReplyCommand());
         getServer().getPluginManager().registerEvents(new Chat(), this);
 
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new CheckOnlinePlayers());
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new Chat());
+        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new MsgCommand());
 
         CheckOnlinePlayers.startCheck();
     }

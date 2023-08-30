@@ -40,10 +40,11 @@ public class Chat implements Listener, PluginMessageListener {
                 if (Bukkit.getServer().getPluginManager().isPluginEnabled("CMI")) {
                     CMIUser user = CMI.getInstance().getPlayerManager().getUser(ChatColor.stripColor(message));
 
-                    if (!user.isVanished() || event.getPlayer().hasPermission("cmi.seevanished")) {
+                    if (user == null || !user.isVanished() || event.getPlayer().hasPermission("cmi.seevanished")) {
                         final_message.append(ConfigManager.getMentionColor()).append(message).append(ChatColor.RESET);
                         mentionedPlayer.add(ChatColor.stripColor(message));
                     }
+
                 } else {
                     final_message.append(ConfigManager.getMentionColor()).append(message).append(ChatColor.RESET);
                     mentionedPlayer.add(ChatColor.stripColor(message));
@@ -105,8 +106,8 @@ public class Chat implements Listener, PluginMessageListener {
                         float pitch = Float.parseFloat(sound.split(":")[2]);
 
                         mentioned_player.playSound(player.getLocation(), Sound.valueOf(sound_id), volume, pitch);
-                        mentioned_player.sendTitle(ConfigManager.getTitle().replace("%player%", sender), ConfigManager.getSubTitle().replace("%player%", sender), ConfigManager.getTitleIn(), ConfigManager.getTitleStay(), ConfigManager.getTitleOut());
                     }
+                    mentioned_player.sendTitle(ConfigManager.getMentionTitle().replace("%player%", sender), ConfigManager.getMentionSubTitle().replace("%player%", sender), ConfigManager.getMentionTitleIn(), ConfigManager.getMentionTitleStay(), ConfigManager.getMentionTitleOut());
                 }
 
             }

@@ -1,5 +1,8 @@
 package com.downyoutube.devmention.devmention.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,5 +18,16 @@ public class Utils {
             match = pattern.matcher(s);
         }
         return net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', s);
+    }
+
+    public static List<String> tabComplete(String a, List<String> arg) {
+        List<String> matches = new ArrayList<>();
+        String search = a.toLowerCase(Locale.ROOT);
+        for (String s : arg) {
+            if (s.toLowerCase(Locale.ROOT).startsWith(search)) {
+                matches.add(s);
+            }
+        }
+        return matches;
     }
 }
